@@ -23,10 +23,10 @@ body{color:var(--ink);font:16px/1.4 'Chakra Petch',system-ui,sans-serif}
 #flash{background:#fff;opacity:0;transition:opacity .25s}
 button{font:700 16px 'Chakra Petch',sans-serif;color:var(--ink);cursor:pointer}
 button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));overflow:auto}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:flex-start;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));overflow:auto}
 .screen.on{display:flex}
 .screen::before,.screen::after{content:'';flex:1 1 0}
-@media(max-height:760px),(max-width:640px){.card canvas{height:64px;object-fit:cover}.foot{position:sticky;bottom:-16px;background:rgba(14,6,32,.95);padding:10px 0;margin-bottom:-10px}.panel h3{margin:10px 0 8px}.card{padding:9px}}
+@media(max-height:760px),(max-width:640px){.panel .card canvas{height:64px;object-fit:cover}.foot{position:sticky;bottom:-16px;background:rgba(14,6,32,.95);padding:10px 0;margin-bottom:-10px}.panel h3{margin:10px 0 8px}.card{padding:9px}}
 .logo{font:clamp(48px,11vw,124px)/1 Audiowide,sans-serif;letter-spacing:.02em;margin:0;background:linear-gradient(180deg,#fff 0%,#ffe1fb 38%,#ff5ce1 50%,#7a1fff 51%,#19f0ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,43,214,.55)) drop-shadow(0 4px 0 #2a0845);transform:skewX(-8deg);text-align:center}
 .tag{font:700 clamp(14px,2.4vw,20px) 'Chakra Petch';color:var(--cyan);letter-spacing:.32em;text-transform:uppercase;margin:10px 0 34px;text-shadow:0 0 12px rgba(25,240,255,.7);text-align:center}
 .big{background:linear-gradient(90deg,#ff2bd6,#7a1fff);border:0;border-radius:4px;padding:16px 44px;font:24px Audiowide,sans-serif;letter-spacing:.06em;box-shadow:0 0 24px rgba(255,43,214,.6),inset 0 -4px 0 rgba(0,0,0,.25);transform:skewX(-10deg);transition:transform .12s,box-shadow .12s;min-height:44px}
@@ -39,6 +39,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .panel h2{font:28px/1.1 Audiowide,sans-serif;margin:0 0 4px;color:#fff}
 .panel h3{font:700 14px 'Chakra Petch';color:var(--mute);margin:18px 0 10px;letter-spacing:.12em;text-transform:uppercase}
 .row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-height:500px){.panel .card canvas{height:44px}.card p{font-size:12px}.panel h2{font-size:22px}}
 @media(max-width:640px){.row{grid-template-columns:minmax(0,1fr)}}
 .card{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;text-align:left;transition:border-color .15s,transform .15s,background .15s;display:flex;flex-direction:column;gap:6px;min-height:44px}
 .card:hover{transform:translateY(-2px)}
@@ -88,7 +89,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #tD.dn{background:rgba(255,43,214,.4);box-shadow:0 0 22px var(--pink)}
 #tB{right:calc(max(16px,env(safe-area-inset-right)) + 104px);bottom:max(30px,env(safe-area-inset-bottom));width:70px;height:70px;font-size:13px;border-color:rgba(255,255,255,.35)}
 body.touch .speedo{top:calc(max(12px,env(safe-area-inset-top)) + 66px);bottom:auto;right:auto;left:50%;transform:translateX(-50%);text-align:center}
-body.touch .kmh{font-size:34px}body.touch .gauge,body.touch .drift{justify-content:center}body.touch .gauge i{width:7px;height:12px}body.touch .dbar{width:110px}
+body.touch .speedo{background:rgba(14,6,32,.55);padding:4px 12px 6px;border-radius:10px}body.touch .kmh{font-size:34px}body.touch .gauge,body.touch .drift{justify-content:center}body.touch .gauge i{width:7px;height:12px}body.touch .dbar{width:110px}
 body.touch #pauseBtn{left:max(14px,env(safe-area-inset-left));transform:none;top:calc(max(12px,env(safe-area-inset-top)) + 100px)}
 body.touch .tr{top:max(12px,env(safe-area-inset-top))}
 .res{text-align:center}
@@ -448,7 +449,10 @@ addEventListener('keydown',e=>{
  const k=KEYS[e.code];if(k){inp[k]=true;e.preventDefault()}
  if(e.code==='Escape'||e.code==='KeyP'){if(state==='race'||state==='countdown')pause();else if(state==='pause')resume()}
  if(e.code==='KeyM')toggleMusic();
- if((e.code==='Enter'||e.code==='Space')&&state==='title'){e.preventDefault();goSelect()}
+ if((e.code==='Enter'||e.code==='Space')&&state==='title'){e.preventDefault();
+  // sur la grille de départ, Entrée lance la course (sauf si un bouton a le focus)
+  if($('sSelect').classList.contains('on')){if(e.code==='Enter'&&!(document.activeElement&&document.activeElement.tagName==='BUTTON'))startRace()}
+  else if($('sTitle').classList.contains('on'))goSelect()}
 });
 addEventListener('keyup',e=>{const k=KEYS[e.code];if(k)inp[k]=false});
 document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;
