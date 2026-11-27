@@ -31,6 +31,9 @@ try {
   await page.goto(URL);
   await page.click('#bPlay');
   check((await page.locator('#ver').innerText()).startsWith('v'), 'numéro de version sur l\'écran titre');
+  check(await page.evaluate(() => window.__kdArt) === 8, 'les 8 visuels peints sont chargés');
+  check((await page.locator('#sTitle').evaluate(el => getComputedStyle(el).backgroundImage)).includes('titre.webp'), 'affiche peinte derrière l\'écran titre');
+  await page.screenshot({ path: `${OUT}/partie-0-titre.png` });
   await page.locator('#trackRow .card').nth(1).click();
   await page.locator('#carRow .card').nth(2).click();
   await page.click('#bStart');

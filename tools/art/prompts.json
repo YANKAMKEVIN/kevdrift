@@ -1,0 +1,22 @@
+{
+  "style": "Illustration numérique synthwave haut de gamme, façon jaquette de jeu de course arcade des années 80 repeinte aujourd'hui : néons roses et cyan, reflets chromés, grain léger, ciel profond. Aucun texte, aucun logo, aucune lettre, aucune signature, aucun filigrane.",
+  "fond_detourage": "Sujet seul, entier, centré, sur un fond uni magenta pur #FF00FF sans dégradé, sans sol ni ombre portée sur le fond, pour être détouré ensuite.",
+  "images": [
+    {"fichier": "titre", "taille": "1920x1080", "detourer": false,
+     "prompt": "Affiche d'ouverture du jeu de course « Néon Overdrive » : trois bolides futuristes bas et larges (un rose #ff2bd6, un cyan #19f0ff, un or #ffd23f) foncent vers le spectateur sur une autoroute néon en perspective qui file vers un grand soleil rayé à l'horizon, gerbes d'étincelles de drift, mégapole de nuit au loin. Garder le tiers haut central assez calme pour poser le titre."},
+    {"fichier": "ciel_neon", "taille": "3072x768", "detourer": false,
+     "prompt": "Panorama très large, raccordable sans couture entre son bord gauche et son bord droit : ciel de minuit violet et magenta au-dessus d'une mégapole néon lointaine (gratte-ciel, enseignes lumineuses sans texte), un soleil rayé rose et orange posé derrière la ville. La ligne d'horizon est tout en bas de l'image, rien au premier plan, pas de route."},
+    {"fichier": "ciel_dunes", "taille": "3072x768", "detourer": false,
+     "prompt": "Panorama très large, raccordable sans couture entre son bord gauche et son bord droit : crépuscule électrique orange, rose et violet au-dessus de dunes de sable chromé lointaines, pylônes électriques qui crépitent à l'horizon, grand soleil rayé couchant. La ligne d'horizon est tout en bas de l'image, rien au premier plan, pas de route."},
+    {"fichier": "ciel_orbital", "taille": "3072x768", "detourer": false,
+     "prompt": "Panorama très large, raccordable sans couture entre son bord gauche et son bord droit : espace profond bleu nuit plein d'étoiles, nébuleuse violette et cyan, une planète géante à anneaux qui se lève, stations orbitales lumineuses au loin. La ligne d'horizon est tout en bas de l'image (bord d'une autoroute stellaire hors champ), rien au premier plan."},
+    {"fichier": "voiture_rose", "taille": "768x512", "detourer": true,
+     "prompt": "Bolide futuriste « Lame Rose » vu exactement de l'arrière, un peu en hauteur (caméra de jeu de course derrière la voiture) : carrosserie basse et large rose néon #ff2bd6 avec reflets violets #7a1fff, aileron, deux gros feux arrière lumineux, deux sorties de propulseur, pneus larges. Symétrique."},
+    {"fichier": "voiture_cyan", "taille": "768x512", "detourer": true,
+     "prompt": "Bolide futuriste « Spectre Cyan » vu exactement de l'arrière, un peu en hauteur (caméra de jeu de course derrière la voiture) : carrosserie fine et agile cyan #19f0ff avec reflets bleus #1b4dff, lignes tranchantes, feux arrière en bande lumineuse, deux propulseurs, pneus larges. Symétrique."},
+    {"fichier": "voiture_or", "taille": "768x512", "detourer": true,
+     "prompt": "Bolide futuriste « Comète Or » vu exactement de l'arrière, un peu en hauteur (caméra de jeu de course derrière la voiture) : carrosserie massive et puissante or #ffd23f avec reflets orange #ff6a00, gros aileron, quatre feux arrière ronds, deux énormes propulseurs, pneus larges. Symétrique."},
+    {"fichier": "voiture_rivale", "taille": "768x512", "detourer": true,
+     "prompt": "Bolide futuriste générique vu exactement de l'arrière, un peu en hauteur (caméra de jeu de course derrière la voiture), carrosserie peinte en blanc nacré très clair et neutre (elle sera recolorée ensuite), vitres sombres, feux arrière rouges lumineux, deux propulseurs, pneus larges noirs. Symétrique."}
+  ]
+}

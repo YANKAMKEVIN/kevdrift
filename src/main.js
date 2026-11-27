@@ -4,6 +4,7 @@ import { $ } from './util.js';
 import { RIVALS, STEP, TRACKS, TURBO, VERSION } from './config.js';
 import { sel } from './save.js';
 import { buildSprites, carSet } from './sprites.js';
+import { loadArt, tintedRival } from './art.js';
 import { P, etat } from './state.js';
 import { engineUpdate } from './audio.js';
 import { attract, gauge, hud, startRace } from './ui.js';
@@ -20,10 +21,12 @@ function frame(now){
 }
 /** @type {any} */(window).__kd=()=>({state:etat.state,pos:etat.pos,lap:etat.lap,raceT:etat.raceT,speed:Math.round(P.speed),x:P.x,rank:1+etat.rivals.filter(r=>r.d>progress()).length,boost:P.boostT,charge:P.charge,drift:P.drift,fps:etat.fpsv});
 etat.rivalImgs=RIVALS.map(r=>carSet(r[1],r[2]));
+/** Bolides peints : chaque rival reçoit le bolide générique repeint à sa couleur. */
+const artReady=loadArt().then(n=>{RIVALS.forEach((r,k)=>{const c=tintedRival(r[1]);if(c)etat.rivalImgs[k]=[c,c,c,c,c]});/** @type {any} */(window).__kdArt=n});
 $('ver').textContent='v'+VERSION;
 resize();
 const boot=()=>{attract();
  if(location.hash==='#demo'){sel.track=0;startRace();P.x=0;}
  if(location.hash==='#demo2'||location.hash==='#demo3'){sel.track=location.hash==='#demo2'?1:2;buildSprites(TRACKS[sel.track]);startRace()}
  requestAnimationFrame(frame)};
-(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot,boot);
+Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve(),artReady]).then(boot,boot);

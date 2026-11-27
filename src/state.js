@@ -6,7 +6,7 @@ import { TRACKS } from './config.js';
 /**
  * @typedef {{w:{x?:number,y:number,z:number},c:any,s:any}} Point
  * @typedef {{i:number,p1:Point,p2:Point,curve:number,sprites:{img:any,off:number,w:number,col:boolean}[],cars:Rival[],pad:number|null,stripe:number,start:boolean,clip:number,vis?:boolean}} Seg
- * @typedef {{name:string,col:string,d:number,z:number,x:number,lane:number,speed:number,top:number,imgs:HTMLCanvasElement[],steer:number}} Rival
+ * @typedef {{name:string,col:string,d:number,z:number,x:number,lane:number,speed:number,top:number,imgs:(HTMLCanvasElement|HTMLImageElement)[],steer:number}} Rival
  */
 
 /** État mutable partagé (anciennes variables globales). */
@@ -40,9 +40,9 @@ export const etat = {
   /** @type {Rival[]} */
   rivals: [],
   touchMode: false,
-  /** @type {HTMLCanvasElement[]} */
+  /** @type {(HTMLCanvasElement|HTMLImageElement)[]} */
   carImgs: [],
-  /** @type {HTMLCanvasElement[][]} */
+  /** @type {(HTMLCanvasElement|HTMLImageElement)[][]} */
   rivalImgs: [],
   /** @type {{x:number,y:number,vx:number,vy:number,c:string,l:number,ml:number,s:number,line?:boolean}[]} */
   particles: [],

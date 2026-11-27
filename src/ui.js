@@ -5,13 +5,14 @@ import { BOOSTC, CARS, LAPS, MAXS, TRACKS } from './config.js';
 import { sel, store } from './save.js';
 import { P, etat, inp, fx } from './state.js';
 import { buildSprites, carSprite, carSet, mk } from './sprites.js';
+import { art, CAR_ART, SKY_ART } from './art.js';
 import { progress, resetRace , driftLevel } from './race.js';
 import { initAudio, setSong, sfx } from './audio.js';
 
 // ================== MENUS ==================
 const screens=['sTitle','sSelect','sPause','sResult'];
 function show(id){screens.forEach(s=>$(s).classList.toggle('on',s===id))}
-function thumb(ti){const t=TRACKS[ti],[c,g]=mk(300,130);const gr=g.createLinearGradient(0,0,0,70);t.sky.forEach((col,i)=>gr.addColorStop(i/(t.sky.length-1),col));g.fillStyle=gr;g.fillRect(0,0,300,70);
+function thumb(ti){const t=TRACKS[ti],[c,g]=mk(300,130);const gr=g.createLinearGradient(0,0,0,70);t.sky.forEach((col,i)=>gr.addColorStop(i/(t.sky.length-1),col));g.fillStyle=gr;g.fillRect(0,0,300,70);{const im=art(SKY_ART[ti]);if(im){const sh=im.width*70/300;g.drawImage(im,0,im.height-sh,im.width,sh,0,0,300,70)}}
  const sg=g.createLinearGradient(0,20,0,70);sg.addColorStop(0,t.sun[0]);sg.addColorStop(1,t.sun[2]);g.fillStyle=sg;g.beginPath();g.arc(150,70,40,Math.PI,0);g.fill();
  g.fillStyle=t.ground;g.fillRect(0,70,300,60);g.strokeStyle=t.grid;g.globalAlpha=.6;for(let i=-10;i<=10;i++){g.beginPath();g.moveTo(150+i*6,70);g.lineTo(150+i*60,130);g.stroke()}for(let y=74;y<130;y+=(y-66)*.5){g.beginPath();g.moveTo(0,y);g.lineTo(300,y);g.stroke()}
  g.globalAlpha=1;g.fillStyle=t.road;g.beginPath();g.moveTo(146,70);g.lineTo(154,70);g.lineTo(230,130);g.lineTo(70,130);g.fill();g.strokeStyle=t.edge;g.lineWidth=3;g.beginPath();g.moveTo(146,70);g.lineTo(70,130);g.moveTo(154,70);g.lineTo(230,130);g.stroke();return c}
@@ -20,7 +21,7 @@ function buildMenus(){
   b.appendChild(thumb(i));const n=document.createElement('div');n.className='n';n.textContent=t.name;const s=document.createElement('div');s.className='s';s.textContent=t.sub;const r=document.createElement('div');r.className='s';r.textContent='Record : '+(best?fmt(best):'—');
   b.append(n,s,r);b.onclick=()=>{sel.track=i;store.set('track',i);sfx('click');buildMenus()};tr.appendChild(b)});
  const cr=$('carRow');cr.innerHTML='';CARS.forEach((c,i)=>{const b=document.createElement('button');b.className='card'+(i===sel.car?' sel':'');const[cc,g]=mk(300,130);const bg=g.createLinearGradient(0,0,0,130);bg.addColorStop(0,'#1a0838');bg.addColorStop(1,'#05010f');g.fillStyle=bg;g.fillRect(0,0,300,130);
-  g.drawImage(carSprite(c.col,c.col2,0),60,18,180,107);b.appendChild(cc);const n=document.createElement('div');n.className='n';n.style.color=c.col;n.textContent=c.name;const s=document.createElement('div');s.className='s';s.textContent=c.sub;b.append(n,s);
+  {const im=art(CAR_ART[i]);if(im)g.drawImage(im,60,8,177,118);else g.drawImage(carSprite(c.col,c.col2,0),60,18,180,107)}b.appendChild(cc);const n=document.createElement('div');n.className='n';n.style.color=c.col;n.textContent=c.name;const s=document.createElement('div');s.className='s';s.textContent=c.sub;b.append(n,s);
   ['Vitesse','Accélération','Maniabilité'].forEach((l,k)=>{const d=document.createElement('div');d.className='stat';d.innerHTML='<span>'+l+'</span><div class="bar"><i style="width:'+c.stats[k]*20+'%"></i></div>';b.appendChild(d)});
   b.onclick=()=>{sel.car=i;store.set('car',i);sfx('click');buildMenus()};cr.appendChild(b)});
  const mt='Musique : '+(etat.musicOn?'oui':'non');$('bMusic').textContent=mt;$('bMusic2').textContent=mt;
@@ -79,5 +80,5 @@ $('bNext').onclick=()=>{sel.track=(sel.track+1)%TRACKS.length;store.set('track',
 Object.assign(fx, {
   bigMsg, toast, flash, sfx, results: showResults,
   resultsShown: () => $('sResult').classList.contains('on'),
-  /** @param {number} i */ carImgs(i) { const C = CARS[i]; etat.carImgs = carSet(C.col, C.col2); },
+  /** @param {number} i */ carImgs(i) { const C = CARS[i], im = art(CAR_ART[i]); etat.carImgs = im ? [im, im, im, im, im] : carSet(C.col, C.col2); },
 });

@@ -93,3 +93,6 @@ body.touch .tr{top:max(12px,env(safe-area-inset-top))}
 .toggles{display:flex;gap:8px;flex-wrap:wrap}
 
 #ver{margin-top:10px;font-size:12px;opacity:.55;letter-spacing:.08em}
+
+/* Affiche peinte (Codex) derrière l'écran titre */
+#sTitle{background:linear-gradient(#05010f99,#05010fcc 70%,#05010fee),url(art/titre.webp) center/cover no-repeat}
