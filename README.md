@@ -54,6 +54,6 @@ npm run unit          # circuits, drift, freinage, sauvegarde et 3 courses compl
 npm run smoke         # fumée : ordinateur, iPhone SE, Pixel 7 couché
 npm run partie        # course complète dans Chromium, pilotée par le robot, puis sauvegarde et rechargement
 ```
-`?robot` fait piloter la voiture par le jeu, `?turbo=N` accélère la course (utilisés par `npm run partie`). La CI (`.github/workflows/tests.yml`) lance tout sur chaque PR ; `pages.yml` publie le jeu à chaque fusion dans `main`.
+`?robot` fait piloter la voiture par le jeu, `?turbo=N` accélère la course (utilisés par `npm run partie`). La CI (`.github/workflows/tests.yml`) lance tout sur chaque PR ; GitHub Pages publie directement la branche `main` (fichier `.nojekyll`).
 
 Correction trouvée par les tests : certaines plaques de boost débordaient d'une ligne droite sur le début d'un virage ; elles sont maintenant entièrement sur le droit.
