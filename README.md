@@ -9,6 +9,9 @@ Jeu de course arcade rétro-futuriste, jouable directement dans le navigateur (o
 - **Drift** : maintiens le drift dans un virage puis relâche pour un turbo bleu, rose ou or. Des plaques turbo jalonnent les lignes droites.
 - **Musique synthwave et bruitages** générés en direct par le jeu (aucun fichier audio).
 
+## Visuels
+L'affiche de l'écran titre, le panorama de chaque circuit et les bolides (les trois machines et le bolide des rivaux, repeint à la couleur de chacun) sont peints avec Codex (`art/`, WebP). Les prompts sont dans `tools/art/prompts.json` ; `tools/art/generer.sh` les génère et `tools/art/finir.py` recadre, raccorde les panoramas, détoure et exporte. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
+
 ## Commandes
 | Action | Clavier | Tactile |
 |---|---|---|

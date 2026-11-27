@@ -1,6 +1,7 @@
 // @ts-check
 /** Rendu pseudo-3D de la route, du décor et des voitures. */
-import { BOOSTC, CAMD, CAMH, CARW, MAXS, PZ, RW, SEG } from './config.js';
+import { BOOSTC, CAMD, CAMH, CARW, MAXS, PZ, RW, SEG, TRACKS } from './config.js';
+import { art, SKY_ART } from './art.js';
 import { P, carBase, etat } from './state.js';
 import { clamp, lerp, rng, wrap } from './util.js';
 import { findSeg } from './track.js';
@@ -17,8 +18,15 @@ export function resize(){
 addEventListener('resize',resize);
 function project(p,cx,cy,cz){p.c.x=(p.w.x||0)-cx;p.c.y=p.w.y-cy;p.c.z=p.w.z-cz;p.s.scale=CAMD/p.c.z;p.s.x=etat.W/2+p.s.scale*p.c.x*etat.PX;p.s.y=etat.CY-p.s.scale*p.c.y*etat.PY;p.s.w=p.s.scale*RW*etat.PX}
 function quad(x1,y1,w1a,w1b,x2,y2,w2a,w2b){ctx.beginPath();ctx.moveTo(x1+w1a,y1);ctx.lineTo(x1+w1b,y1);ctx.lineTo(x2+w2b,y2);ctx.lineTo(x2+w2a,y2);ctx.closePath();ctx.fill()}
+/** Panorama peint du circuit, répété à l'horizontale et décalé avec les virages ; faux s'il n'est pas prêt. */
+function paintedSky(hz){const im=art(SKY_ART[TRACKS.indexOf(etat.T)]);if(!im)return false;
+ const h=hz+2,w=im.width*h/im.height;let ox=-wrap(etat.skyX*etat.W*.3,w);
+ for(let x=ox;x<etat.W;x+=w)ctx.drawImage(im,x,0,w,h);
+ const gg=ctx.createLinearGradient(0,hz,0,etat.H);gg.addColorStop(0,etat.T.fog);gg.addColorStop(.25,etat.T.ground);ctx.fillStyle=gg;ctx.fillRect(0,hz,etat.W,etat.H-hz);
+ return true}
 function drawBackground(){
- const hz=etat.CY;const g=ctx.createLinearGradient(0,0,0,hz);etat.T.sky.forEach((c,i)=>g.addColorStop(i/(etat.T.sky.length-1),c));ctx.fillStyle=g;ctx.fillRect(0,0,etat.W,hz+2);
+ const hz=etat.CY;
+ if(paintedSky(hz))return;const g=ctx.createLinearGradient(0,0,0,hz);etat.T.sky.forEach((c,i)=>g.addColorStop(i/(etat.T.sky.length-1),c));ctx.fillStyle=g;ctx.fillRect(0,0,etat.W,hz+2);
  // étoiles
  ctx.fillStyle='#fff';const R=rng(99);const ns=etat.T.mount.kind==='space'?180:70;for(let i=0;i<ns;i++){const x=wrap(R()*etat.W*2-etat.skyX*etat.W*.15,etat.W*2)-etat.W*.5,y=R()*hz*.8;ctx.globalAlpha=(.3+R()*.7)*(.6+.4*Math.sin(etat.time*2+i));ctx.fillRect(x,y,R()<.1?2:1.2,R()<.1?2:1.2)}ctx.globalAlpha=1;
  if(etat.T.mount.kind==='space'){const ng=ctx.createRadialGradient(etat.W*.25,hz*.35,0,etat.W*.25,hz*.35,etat.W*.4);ng.addColorStop(0,'rgba(122,31,255,.35)');ng.addColorStop(1,'rgba(122,31,255,0)');ctx.fillStyle=ng;ctx.fillRect(0,0,etat.W,hz)}
