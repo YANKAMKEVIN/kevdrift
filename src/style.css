@@ -98,3 +98,5 @@ body.touch .tr{top:max(12px,env(safe-area-inset-top))}
 #sTitle{background:linear-gradient(#05010f99,#05010fcc 70%,#05010fee),url('/art/titre.webp') center/cover no-repeat}
 .prog i.me{z-index:2;width:16px;height:16px;top:-5px;margin-left:-8px;border:2px solid #fff}
 .lap-rec{color:var(--cyan)}
+/* Téléphone étroit en portrait : FREIN passe au-dessus de DRIFT pour ne plus couvrir ▶ */
+@media (max-width:440px){#tB{right:calc(max(16px,env(safe-area-inset-right)) + 13px);bottom:calc(max(24px,env(safe-area-inset-bottom)) + 108px)}}

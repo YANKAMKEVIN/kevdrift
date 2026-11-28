@@ -115,6 +115,20 @@ try {
       console.log(`  ${f.toFixed(1)} images/s`);
       if (f < cfg.minFps) fail(prof.name, `${f.toFixed(1)} images/s, minimum ${cfg.minFps}`);
     }
+    if (prof.touch) {
+      // les boutons tactiles ne doivent pas se chevaucher (un doigt sur FREIN ne doit pas cacher ▶)
+      const overlaps = await page.evaluate(() => {
+        const r = [...document.querySelectorAll('#touch.on .tb')].map(b => [b.id, b.getBoundingClientRect()]);
+        const out = [];
+        for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) {
+          const [a, A] = r[i], [b, B] = r[j];
+          if (A.left < B.right && B.left < A.right && A.top < B.bottom && B.top < A.bottom) out.push(`${a}/${b}`);
+        }
+        return { n: r.length, out };
+      });
+      if (overlaps.n !== 4) fail(prof.name, `4 boutons tactiles attendus, ${overlaps.n} affichés`);
+      for (const o of overlaps.out) fail(prof.name, `boutons tactiles qui se chevauchent : ${o}`);
+    }
     const cdp = prof.touch ? await ctx.newCDPSession(page) : null;
     await play(page, prof.touch, cdp);
     await page.screenshot({ path: `${SHOTS}/${prof.name}-2-partie.png` });
