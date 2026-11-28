@@ -95,4 +95,6 @@ body.touch .tr{top:max(12px,env(safe-area-inset-top))}
 #ver{margin-top:10px;font-size:12px;opacity:.55;letter-spacing:.08em}
 
 /* Affiche peinte (Codex) derrière l'écran titre */
-#sTitle{background:linear-gradient(#05010f99,#05010fcc 70%,#05010fee),url(art/titre.webp) center/cover no-repeat}
+#sTitle{background:linear-gradient(#05010f99,#05010fcc 70%,#05010fee),url('/art/titre.webp') center/cover no-repeat}
+.prog i.me{z-index:2;width:16px;height:16px;top:-5px;margin-left:-8px;border:2px solid #fff}
+.lap-rec{color:var(--cyan)}
