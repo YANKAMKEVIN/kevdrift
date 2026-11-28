@@ -1,0 +1,146 @@
+// Test de fumée : charge le jeu sur ordinateur et téléphones, le lance, joue ~20 s
+// avec de vraies entrées et échoue sur toute erreur console, débordement ou bouton
+// inaccessible.
+// Lancer : npm run build && npm run smoke   (sert dist/, serveur local démarré automatiquement)
+// Réglages propres au jeu : objet cfg ci-dessous.
+import { devices } from 'playwright';
+import { setup, sleep, SHOTS } from './browser.mjs';
+
+// Réglages propres au jeu
+const cfg = {
+  start: ['#bPlay', '#bStart'], startTouch: ['#bPlay', '#bStart'], keys: ['ArrowUp', 'ArrowLeft', 'ArrowUp', 'ArrowRight', 'Space'],
+  minFps: 8,
+};
+const PLAY_MS = Number(process.env.SMOKE_PLAY_MS || cfg.playMs || 20000);
+const PROFILES = [
+  { name: 'ordinateur', ctx: { viewport: { width: 1280, height: 800 } }, touch: false },
+  { name: 'iphone-se', ctx: { ...devices['iPhone SE'] }, touch: true },
+  { name: 'pixel7-paysage', ctx: { ...devices['Pixel 7'], viewport: { width: 915, height: 412 } }, touch: true },
+];
+const only = process.env.SMOKE_ONLY;
+
+const failures = [];
+const fail = (p, msg) => { failures.push(`[${p}] ${msg}`); console.log(`  ÉCHEC ${msg}`); };
+const ignored = t => (cfg.ignoreErrors || []).some(re => re.test(t));
+
+// Chaque bouton visible doit pouvoir être amené à l'écran (défilement compris) et y tenir.
+async function checkButtons(page, p, step) {
+  const bad = await page.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('button, [role=button], a[href], input, select')) {
+      const cs = getComputedStyle(el), r0 = el.getBoundingClientRect();
+      if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0 || r0.width === 0 || r0.height === 0) continue;
+      if (el.closest('[hidden], [aria-hidden=true], [inert]')) continue;
+      // tiroir fermé, rangé hors écran par une transformation : ce n'est pas un bug
+      let a = el, moved = false;
+      while ((a = a.parentElement)) if (getComputedStyle(a).transform !== 'none') { moved = true; break; }
+      if (moved) continue;
+      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      const r = el.getBoundingClientRect();
+      if (r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1)
+        out.push(`${el.id ? '#' + el.id : el.tagName.toLowerCase()} « ${(el.innerText || el.value || el.getAttribute('aria-label') || '').trim().slice(0, 30)} »`);
+    }
+    window.scrollTo(0, 0);
+    return out;
+  });
+  for (const b of bad) fail(p, `${step} : bouton hors écran et inaccessible : ${b}`);
+  const ov = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+  if (ov > 2) fail(p, `${step} : la page déborde de ${ov} px à l'horizontale`);
+}
+
+async function act(page, touch, sel) {
+  const el = page.locator(sel).first();
+  await el.waitFor({ state: 'visible', timeout: 8000 });
+  if (touch) await el.tap({ timeout: 8000 }); else await el.click({ timeout: 8000 });
+  await sleep(600);
+}
+
+async function play(page, touch, cdp) {
+  const { width: w, height: h } = page.viewportSize();
+  const keys = cfg.keys || ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'];
+  const t0 = Date.now(); let i = 0;
+  while (Date.now() - t0 < PLAY_MS) {
+    i++;
+    if (touch) {
+      // glissé puis toucher, dans la zone de jeu
+      const x = w * (0.3 + 0.4 * Math.random()), y = h * (0.35 + 0.35 * Math.random());
+      const tp = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts });
+      await tp('touchStart', [{ x, y }]);
+      for (let k = 1; k <= 6; k++) await tp('touchMove', [{ x: x + k * 12 * (i % 2 ? 1 : -1), y: y + k * 4 }]);
+      await tp('touchEnd', []);
+      await sleep(250);
+    } else {
+      const k = keys[i % keys.length];
+      await page.keyboard.down(k); await sleep(180 + (i % 3) * 120); await page.keyboard.up(k);
+      if (cfg.mouse && i % 4 === 0) await page.mouse.click(w * (0.3 + 0.4 * Math.random()), h * (0.35 + 0.35 * Math.random()));
+    }
+  }
+}
+
+async function fps(page, ms = 2000) {
+  return page.evaluate(ms => new Promise(res => { let n = 0; const t0 = performance.now();
+    (function f(t) { n++; if (t - t0 < ms) requestAnimationFrame(f); else res(n * 1000 / (t - t0)); })(t0); }), ms);
+}
+
+let env;
+try {
+  env = await setup({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const { browser } = env;
+  const BASE = `${env.base}/index.html`;
+  for (const prof of PROFILES) {
+    if (only && !prof.name.includes(only)) continue;
+    console.log(`▶ ${prof.name}`);
+    const ctx = await browser.newContext(prof.ctx);
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('console', m => { const t = `${m.text()} ${m.location()?.url || ''}`; if (m.type() === 'error' && !ignored(t)) errors.push(t.trim()); });
+    page.on('pageerror', e => { if (!ignored(e.message)) errors.push(e.message); });
+    page.on('requestfailed', r => { if (r.url().startsWith(env.base) && !ignored(r.url())) errors.push(`requête échouée ${r.url()}`); });
+    page.on('response', r => { if (r.status() >= 400 && !ignored(r.url())) errors.push(`HTTP ${r.status()} ${r.url()}`); });
+    await page.goto(BASE, { waitUntil: 'load' });
+    await sleep(1500);
+    await checkButtons(page, prof.name, 'accueil');
+    await page.screenshot({ path: `${SHOTS}/${prof.name}-1-accueil.png` });
+    for (const sel of (prof.touch ? cfg.startTouch || cfg.start : cfg.start) || []) {
+      try { await act(page, prof.touch, sel); } catch (e) { fail(prof.name, `impossible d'actionner ${sel} : ${e.message.split('\n')[0]}`); }
+    }
+    await sleep(1000);
+    // éléments qui doivent être visibles une fois le jeu lancé (ex. bouton d'export)
+    for (const sel of cfg.mustSee || []) {
+      const ok = await page.locator(sel).first().isVisible().catch(() => false);
+      if (!ok) fail(prof.name, `${sel} devrait être visible après le lancement`);
+    }
+    if (!prof.touch && cfg.minFps) {
+      const f = await fps(page);
+      console.log(`  ${f.toFixed(1)} images/s`);
+      if (f < cfg.minFps) fail(prof.name, `${f.toFixed(1)} images/s, minimum ${cfg.minFps}`);
+    }
+    if (prof.touch) {
+      // les boutons tactiles ne doivent pas se chevaucher (un doigt sur FREIN ne doit pas cacher ▶)
+      const overlaps = await page.evaluate(() => {
+        const r = [...document.querySelectorAll('#touch.on .tb')].map(b => [b.id, b.getBoundingClientRect()]);
+        const out = [];
+        for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) {
+          const [a, A] = r[i], [b, B] = r[j];
+          if (A.left < B.right && B.left < A.right && A.top < B.bottom && B.top < A.bottom) out.push(`${a}/${b}`);
+        }
+        return { n: r.length, out };
+      });
+      if (overlaps.n !== 4) fail(prof.name, `4 boutons tactiles attendus, ${overlaps.n} affichés`);
+      for (const o of overlaps.out) fail(prof.name, `boutons tactiles qui se chevauchent : ${o}`);
+    }
+    const cdp = prof.touch ? await ctx.newCDPSession(page) : null;
+    await play(page, prof.touch, cdp);
+    await page.screenshot({ path: `${SHOTS}/${prof.name}-2-partie.png` });
+    if (cfg.checkInGame !== false) await checkButtons(page, prof.name, 'en jeu');
+    for (const e of errors) fail(prof.name, `erreur console : ${e.slice(0, 200)}`);
+    if (!failures.some(f => f.startsWith(`[${prof.name}]`))) console.log('  OK');
+    await ctx.close();
+  }
+} catch (e) {
+  failures.push(`erreur du test : ${e.stack || e}`);
+} finally {
+  await env?.close();
+}
+if (failures.length) { console.log(`\n${failures.length} échec(s) :\n` + failures.join('\n')); process.exit(1); }
+console.log('\nTest de fumée réussi.');

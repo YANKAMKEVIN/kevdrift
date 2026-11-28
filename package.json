@@ -1,18 +1,30 @@
 {
   "name": "kevdrift",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
-    "start": "node tools/serve.mjs",
-    "test": "npm run types && npm run unit && npm run smoke && npm run partie",
-    "types": "tsc -p .",
-    "unit": "node --test \"tests/unit/*.test.mjs\"",
-    "smoke": "node tests/smoke.mjs",
-    "partie": "node tests/partie.mjs"
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bot": "node scripts/bot.ts",
+    "e2e": "npm run smoke && npm run partie",
+    "smoke": "node tests/e2e/smoke.mjs",
+    "partie": "node tests/e2e/partie.mjs",
+    "check": "npm run typecheck && npm test && npm run bot && npm run build && npm run e2e"
   },
   "devDependencies": {
+    "@types/node": "22.20.4",
     "playwright": "1.63.0",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "vite": "7.3.8",
+    "vitest": "3.2.4"
   }
 }

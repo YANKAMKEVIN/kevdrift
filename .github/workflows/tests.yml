@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unit:
-    name: Types et tests unitaires (circuits, drift, sauvegarde, courses simulées)
+  verif:
+    name: Types, tests unitaires, robot, construction
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -23,12 +23,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
-      - run: npm run types
-      - run: npm run unit
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Types (TypeScript strict)
+        run: npm run typecheck
+      - name: Tests unitaires (Vitest)
+        run: npm test
+      - name: Robot sans navigateur (9 courses complètes)
+        run: npm run bot
+      - name: Construction (Vite)
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 3
 
   navigateur:
-    name: Fumée (ordinateur, iPhone SE, Pixel 7) et course complète
+    name: Fumée (ordinateur, iPhone SE, Pixel 7) et parcours complet
+    needs: verif
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -36,10 +51,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+          cache: npm
+      - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm run smoke
-      - run: npm run partie
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Fumée
+        run: npm run smoke
+      - name: Parcours complet (robot, sauvegarde, onglet caché)
+        run: npm run partie
       - name: Captures
         if: always()
         uses: actions/upload-artifact@v4
