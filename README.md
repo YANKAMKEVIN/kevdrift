@@ -10,7 +10,7 @@ Jeu de course arcade rétro-futuriste, jouable directement dans le navigateur (o
 - **Musique synthwave et bruitages** générés en direct par le jeu (aucun fichier audio).
 
 ## Visuels
-L'affiche de l'écran titre, le panorama de chaque circuit et les bolides (les trois machines et le bolide des rivaux, repeint à la couleur de chacun) sont peints avec Codex (`art/`, WebP). Les prompts sont dans `tools/art/prompts.json` ; `tools/art/generer.sh` les génère et `tools/art/finir.py` recadre, raccorde les panoramas, détoure et exporte. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
+L'affiche de l'écran titre, le panorama de chaque circuit et les bolides (les trois machines et le bolide des rivaux, repeint à la couleur de chacun) sont peints avec Codex (`public/art/`, WebP). Les prompts sont dans `tools/art/prompts.json` ; `tools/art/generer.sh` les génère et `tools/art/finir.py` recadre, raccorde les panoramas, détoure et exporte. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/render/art.ts`).
 
 ## Commandes
 | Action | Clavier | Tactile |
@@ -22,41 +22,49 @@ L'affiche de l'écran titre, le panorama de chaque circuit et les bolides (les t
 | Pause | Échap / P | bouton pause |
 | Musique on/off | M | menu |
 
-## Lancer le jeu
-En ligne : https://yankamkevin.github.io/kevdrift/ (publié automatiquement à chaque fusion dans `main`).
+## Réglages
+Sur la grille de départ et dans la pause : **Musique**, **Sons** (bruitages et moteur) et **Secousses** (tremblements et flashs de l'écran). Ils sont sauvegardés.
 
-Hors ligne : `npm start`, puis http://localhost:8000. Le jeu est découpé en modules JavaScript, que les navigateurs refusent d'ouvrir directement en `file://`.
+## Lancer le jeu
+En ligne : https://yankamkevin.github.io/kevdrift/ (construit et publié par GitHub Actions à chaque fusion dans `main` ; réglage du dépôt : *Settings > Pages > Source = GitHub Actions*).
+
+En local (Node 22.18 ou plus) :
+```bash
+npm ci
+npm run dev        # serveur de développement Vite, rechargement à chaud
+npm run build      # jeu construit dans dist/
+npm run preview    # sert dist/
+```
 
 ## Technique
-HTML, CSS et JavaScript sans dépendance ni étape de construction ; rendu pseudo-3D sur canvas, son par la Web Audio API. Code typé (JSDoc vérifié par TypeScript en mode strict) et découpé par rôle :
+TypeScript strict, construit par Vite, sans dépendance à l'exécution ; rendu pseudo-3D sur canvas, son par la Web Audio API. La simulation est pure (aucun DOM, aucun hasard) et tourne à pas fixe de 1/60 s ; le rendu, le son et l'interface la lisent sans la modifier.
 
-| Fichier | Rôle |
+| Dossier | Rôle |
 |---|---|
-| `src/config.js` | Données : circuits, voitures, rivaux, seuils de drift et de boost, version |
-| `src/track.js` | Construction du circuit en segments (sans DOM) |
-| `src/race.js` | Course : pilotage, drift et boosts, rivaux, tours, arrivée (sans DOM) |
-| `src/state.js` | État partagé de la course |
-| `src/save.js` | Sauvegarde versionnée |
-| `src/sprites.js` | Images précalculées (voitures, décors) |
-| `src/render.js` | Rendu de la route et des voitures |
-| `src/ui.js` | Écrans et tableau de bord |
-| `src/input.js` | Clavier et boutons tactiles |
-| `src/audio.js` | Musique et sons |
-| `src/main.js` | Démarrage et boucle |
+| `src/sim/` | Simulation pure : données (`config.ts`), circuit (`track.ts`), pilotage, drift et boosts (`physics.ts`), collisions (`collision.ts`), rivaux et pilote automatique (`ai.ts`), course, tours et arrivée (`race.ts`), robot (`bot.ts`) |
+| `src/platform/` | Sauvegarde versionnée (`save.ts`), profil du joueur (`profile.ts`), paramètres d'adresse (`params.ts`) |
+| `src/render/` | Vue et densité de pixels (`view.ts`), route (`road.ts`), ciel (`background.ts`), décor et voitures (`cars.ts`), particules, images dessinées et peintes |
+| `src/audio/` | Web Audio : bus et voix (`core.ts`), musique (`music.ts`), bruitages et moteur (`sfx.ts`) |
+| `src/ui/` | Écrans (`screens.ts`), grille de départ (`menus.ts`), tableau de bord (`hud.ts`), annonces et résultats (`feedback.ts`) |
+| `src/main.ts` | Démarrage, boucle à pas fixe, pause quand l'onglet est caché |
+
+Mobile : densité de pixels plafonnée à 1,5 et budget de 2,4 millions de pixels, moins de segments dessinés sur petit écran, aucune allocation par image pendant la course (projection dans des tableaux typés, particules réutilisées), boucle et son arrêtés quand l'onglet est caché, boutons tactiles et accélération automatique au premier toucher.
 
 ## Sauvegarde
-Circuit et voiture choisis, musique et record de chaque circuit sont gardés dans le navigateur (`localStorage`, clé `kevdrift.sauvegarde`). Le format est versionné (`migrate()` dans `src/save.js`). Les records de l'ancienne version (clés `kevdrift.best0`…) sont repris automatiquement une fois. Une sauvegarde abîmée ou venant d'une version plus récente est mise de côté sous `kevdrift.sauvegarde.abimee`, jamais écrasée en silence.
+Circuit et machine choisis, réglages, et pour chaque circuit le record de course et le meilleur tour sont gardés dans le navigateur (`localStorage`, clé `kevdrift.sauvegarde`, format version 2, `src/platform/save.ts`). Toute modification du format ajoute une étape à `migrate()` : la version 1 (jeu 1.1.0) et les toutes premières clés séparées (`kevdrift.best0`…) sont reprises automatiquement. Un champ abîmé est remplacé par sa valeur par défaut sans perdre le reste ; une sauvegarde illisible ou venant d'une version plus récente est mise de côté sous `kevdrift.sauvegarde.abimee`, jamais écrasée en silence. Sans `localStorage` (navigation privée stricte), le jeu marche, simplement sans mémoire.
 
 ## Tests
 ```bash
-npm install
-npx playwright install chromium
-npm test              # tout ce que lance la CI
-npm run types         # vérification des types
-npm run unit          # circuits, drift, freinage, sauvegarde et 3 courses complètes simulées (Node)
+npm run typecheck     # TypeScript strict
+npm test              # Vitest : physique, drift, plaques, collisions, IA, tours, sauvegarde, robot… (188 tests)
+npm run bot           # robot sans navigateur : 9 courses complètes (3 circuits × 3 machines)
+npm run build         # puis, sur le jeu construit :
 npm run smoke         # fumée : ordinateur, iPhone SE, Pixel 7 couché
-npm run partie        # course complète dans Chromium, pilotée par le robot, puis sauvegarde et rechargement
+npm run partie        # parcours complet piloté par le robot : course, records, pause, réglages, rechargement, onglet caché, anciennes sauvegardes
+npm run check         # tout, dans l'ordre de la CI
 ```
-`?robot` fait piloter la voiture par le jeu, `?turbo=N` accélère la course (utilisés par `npm run partie`). La CI (`.github/workflows/tests.yml`) lance tout sur chaque PR ; GitHub Pages publie directement la branche `main` (fichier `.nojekyll`).
+Les tests navigateur utilisent Playwright (`npx playwright install chromium` la première fois). `?robot` fait piloter la voiture par le jeu, `?turbo=N` accélère la course, `#demo`, `#demo2`, `#demo3` lancent une démo. La CI (`.github/workflows/tests.yml`) lance tout sur chaque PR et bloque en cas d'échec.
 
-Correction trouvée par les tests : certaines plaques de boost débordaient d'une ligne droite sur le début d'un virage ; elles sont maintenant entièrement sur le droit.
+Non-régression : `tests/unit/fixtures/reference-1.1.0.json` contient 21 courses jouées avec le JavaScript d'origine ; la simulation TypeScript doit les reproduire au millionième près.
+
+Correction trouvée par les tests (1.1.0) : certaines plaques de boost débordaient d'une ligne droite sur le début d'un virage ; elles sont maintenant entièrement sur le droit.
