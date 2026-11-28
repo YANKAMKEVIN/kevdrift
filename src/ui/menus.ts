@@ -106,3 +106,16 @@ export function refreshSettings(): void {
     b.setAttribute('aria-pressed', String(on));
   });
 }
+
+/** Écran titre : un badge par circuit qui a déjà un record. */
+export function buildTitleRecords(): void {
+  const box = $('titleRec');
+  box.replaceChildren();
+  TRACKS.forEach((t, i) => {
+    const best = profile.bestRace(i);
+    if (!best) return;
+    const s = el('span', '', t.name);
+    s.appendChild(el('b', '', fmt(best)));
+    box.appendChild(s);
+  });
+}

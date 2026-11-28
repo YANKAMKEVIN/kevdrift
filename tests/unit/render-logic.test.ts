@@ -43,7 +43,7 @@ describe('particules', () => {
     layout(1280, 800, 1);
     clearParticles();
     const r = startOn(0);
-    r.player.drift = true; r.player.speed = MAXS;
+    r.player.drift = true; r.player.speed = MAXS * 0.8;
     for (let k = 0; k < 10; k++) stepParticles(r, STEP);
     expect(particleCount()).toBeGreaterThan(5);
     r.player.drift = false;
@@ -56,6 +56,16 @@ describe('particules', () => {
     r.player.drift = true; r.player.boostT = 100; r.player.x = 1.5; r.player.speed = MAXS;
     for (let k = 0; k < 2000; k++) stepParticles(r, 0.0001, () => 0);
     expect(particleCount()).toBe(MAX_PARTICLES);
+  });
+  test('traits de vitesse seulement à pleine vitesse', () => {
+    clearParticles();
+    const r = startOn(0);
+    r.player.speed = MAXS * 0.5;
+    for (let k = 0; k < 60; k++) stepParticles(r, STEP);
+    expect(particleCount()).toBe(0);
+    r.player.speed = MAXS;
+    for (let k = 0; k < 60; k++) stepParticles(r, STEP);
+    expect(particleCount()).toBeGreaterThan(0);
   });
   test('aucune particule à l\'arrêt sur la route', () => {
     clearParticles();

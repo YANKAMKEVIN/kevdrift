@@ -16,6 +16,7 @@ import { $ } from './ui/dom.ts';
 import { wireEvents } from './ui/feedback.ts';
 import { hud, initHud } from './ui/hud.ts';
 import { applySettings, attract, pause, startRace, wireButtons } from './ui/screens.ts';
+import { buildTitleRecords } from './ui/menus.ts';
 import { VERSION } from './version.ts';
 
 const loop = { last: 0, acc: 0, raf: 0, fps: 0, frames: 0, ft: 0, steps: 0 };
@@ -76,6 +77,7 @@ w.__kd = () => ({
 
 function boot(): void {
   attract();
+  buildTitleRecords();
   if (DEMO >= 0) {
     // démo : course pilotée seule, sur le circuit demandé, sans toucher à la sauvegarde
     race.autopilot = true;

@@ -98,5 +98,19 @@ body.touch .tr{top:max(12px,env(safe-area-inset-top))}
 #sTitle{background:linear-gradient(#05010f99,#05010fcc 70%,#05010fee),url('/art/titre.webp') center/cover no-repeat}
 .prog i.me{z-index:2;width:16px;height:16px;top:-5px;margin-left:-8px;border:2px solid #fff}
 .lap-rec{color:var(--cyan)}
+
+/* Effets de vitesse : bords de l'écran qui s'embrasent pendant un boost */
+.boostfx{opacity:0;transition:opacity .35s ease-out;background:radial-gradient(ellipse at 50% 55%,transparent 48%,rgba(25,240,255,.16) 78%,rgba(255,43,214,.32) 100%);mix-blend-mode:screen}
+body.boosting .boostfx{opacity:1;transition-duration:.08s}
+body.noshake .boostfx{display:none}
+
+/* Écran titre : records de chaque circuit */
+.titlerec{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;margin-top:18px;font-size:13px;color:var(--mute);letter-spacing:.04em}
+.titlerec:empty{display:none}
+.titlerec span{background:rgba(14,6,32,.6);border:1px solid rgba(25,240,255,.25);border-radius:999px;padding:4px 12px}
+.titlerec b{color:var(--gold);font:13px Audiowide,sans-serif;margin-left:6px}
+.logo{animation:logoGlow 3.2s ease-in-out infinite}
+@keyframes logoGlow{50%{filter:drop-shadow(0 0 30px rgba(255,43,214,.85)) drop-shadow(0 4px 0 #2a0845)}}
+@media (prefers-reduced-motion:reduce){.logo,.blink{animation:none}}
 /* Téléphone étroit en portrait : FREIN passe au-dessus de DRIFT pour ne plus couvrir ▶ */
 @media (max-width:440px){#tB{right:calc(max(16px,env(safe-area-inset-right)) + 13px);bottom:calc(max(24px,env(safe-area-inset-bottom)) + 108px)}}

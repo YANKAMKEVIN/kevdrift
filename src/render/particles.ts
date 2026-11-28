@@ -58,6 +58,10 @@ export function stepParticles(r: Race, dt: number, rand: () => number = Math.ran
       }
     }
   }
+  // traits de vitesse discrets à pleine vitesse, plus nombreux pendant un boost
+  if (P.boostT <= 0 && r.phase === 'race' && sp > 0.92 && rand() < 0.35) {
+    part(W / 2 + (rand() - 0.5) * W * 1.3, H * 0.25 + rand() * H * 0.55, 0, 0, '#9fdcff', 0.2, 0, true);
+  }
   if (P.boostT > 0) {
     for (let k = 0; k < 2; k++) part(W / 2 + (rand() - 0.5) * W * 1.2, H * 0.2 + rand() * H * 0.6, 0, 0, '#ffffff', 0.25, 0, true);
   }

@@ -10,7 +10,7 @@ import { initAudio, setMusic, setSfx } from '../audio/core.ts';
 import { MENU_SONG, setSong } from '../audio/music.ts';
 import { sfx } from '../audio/sfx.ts';
 import { $ } from './dom.ts';
-import { buildMenus, refreshSettings } from './menus.ts';
+import { buildMenus, buildTitleRecords, refreshSettings } from './menus.ts';
 import { buildProgressDots } from './hud.ts';
 
 const SCREENS = ['sTitle', 'sSelect', 'sPause', 'sResult'];
@@ -18,6 +18,7 @@ const SCREENS = ['sTitle', 'sSelect', 'sPause', 'sResult'];
 export function show(id: string | null): void {
   for (const s of SCREENS) $(s).classList.toggle('on', s === id);
   document.body.dataset.screen = id ?? 'race';
+  if (id) document.body.classList.remove('boosting');
 }
 
 export const isShown = (id: string): boolean => $(id).classList.contains('on');
@@ -74,6 +75,7 @@ function quit(): void {
   $('hud').classList.remove('on');
   $('touch').classList.remove('on');
   attract();
+  buildTitleRecords();
   show('sTitle');
   setSong(MENU_SONG);
 }
@@ -84,6 +86,7 @@ export function applySettings(): void {
   setMusic(s.music);
   setSfx(s.sfx);
   scene.shake = s.shake;
+  document.body.classList.toggle('noshake', !s.shake);
 }
 
 export function toggleSetting(k: keyof Settings): void {
@@ -95,7 +98,7 @@ export function toggleSetting(k: keyof Settings): void {
 
 export function wireButtons(): void {
   $('bPlay').onclick = goSelect;
-  $('bBack').onclick = () => { sfx('click'); show('sTitle'); };
+  $('bBack').onclick = () => { sfx('click'); buildTitleRecords(); show('sTitle'); };
   $('bStart').onclick = () => startRace();
   $('bResume').onclick = resume;
   $('bRestart').onclick = () => startRace();
